@@ -1,4 +1,6 @@
 class UserAccountController < ApplicationController
+  before_action :authorize, only: [:show]
+
   def create
     @user_account = UserAccount.new(user_account_params)
 
@@ -8,7 +10,7 @@ class UserAccountController < ApplicationController
 
       head :created
     else
-      head :unprocessable_entity
+      json_error("Invalid user account data", :unprocessable_entity)
     end
   end
 
@@ -25,8 +27,12 @@ class UserAccountController < ApplicationController
 
       render json: { token: token, expire_time: Time.at(expire_time) }, status: :ok
     else
-      render json: { error: 'invalid user or password' }, status: :unauthorized
+      json_error("Invalid user or password", :unauthorized)
     end
+  end
+
+  def show
+    render json: { user_account: @user_account }, status: :ok
   end
 
   private
