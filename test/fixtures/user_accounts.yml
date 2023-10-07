@@ -13,6 +13,15 @@ ryu_hayabusa_account:
   balance: 10000
   password_digest: 123456
 
+ken_masters_account:
+  id: 4d327b8f-7323-432d-afa7-64366b877a85
+  name: Ken
+  last_name: Masters
+  document_number: 71370823002
+  opening_balance: 55000
+  balance: 55000
+  password_digest: 123456
+
 # column: value
 #
 # two: {}
