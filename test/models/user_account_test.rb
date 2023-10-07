@@ -7,27 +7,45 @@ class UserAccountTest < ActiveSupport::TestCase
   end
 
   test "should save a valid UserAccount" do
-    opening_balance = 10000
-
     user_account = UserAccount.new(
       name: "Yury",
       document_number: "71313210013",
-      opening_balance: opening_balance,
-      balance: opening_balance,
+      opening_balance: 10000,
+      balance: 10000,
       password: "123456"
     )
 
     assert user_account.save
   end
 
-  test "should not save UserAccount with exceeding lengths" do
-    opening_balance = 10000
+  test "should not save document number with characters" do
+    user_account = UserAccount.new(
+      name: "Yury",
+      document_number: "abcdefghijk",
+      opening_balance: 10000,
+      balance: 10000,
+      password: "123456"
+    )
+    assert_not user_account.save
+  end
 
+  test "should not save balance with characters" do
+    user_account = UserAccount.new(
+      name: "Yury",
+      document_number: "71313210013",
+      opening_balance: "a",
+      balance: "b",
+      password: "123456"
+    )
+    assert_not user_account.save
+  end
+
+  test "should not save UserAccount with exceeding lengths" do
     user_account = UserAccount.new(
       name: "Yury",
       document_number: "30328329329328329",
-      opening_balance: opening_balance,
-      balance: opening_balance,
+      opening_balance: 10000,
+      balance: 10000,
       password: "123456"
     )
 
