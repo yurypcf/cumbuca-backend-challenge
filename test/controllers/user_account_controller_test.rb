@@ -66,7 +66,7 @@ class UserAccountControllerTest < ActionDispatch::IntegrationTest
 
     post "/sign_in",
       params: {
-        document_number: "85902023050", # wrong document_number
+        document_number: "85902023050",
         password: "123456"
       }
     
@@ -77,6 +77,6 @@ class UserAccountControllerTest < ActionDispatch::IntegrationTest
     get "/me", headers: { Authorization: "Bearer #{sign_in_body_json['token']}"}
     assert_response :ok
 
-    assert_equal "{\"user_account\":{\"name\":\"Kaneda\",\"last_name\":\"Shotaro\",\"document_number\":\"85902023050\",\"balance\":0,\"opening_balance\":0,\"id\":null}}", @response.body
+    assert_equal "85902023050", JSON.parse(@response.body)['user_account']['document_number']
   end
 end

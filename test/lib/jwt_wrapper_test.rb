@@ -14,8 +14,8 @@ class JwtWrapperTest < ActiveSupport::TestCase
 
     decoded_token_data = JwtWrapper.decode(token)
 
-    assert_equal "1e9a754c-bac5-4ee3-8f8b-035a76693bc8", decoded_token_data[:user_id]
-    assert_equal "38426879586", decoded_token_data[:document_number]
-    assert_equal "123456", decoded_token_data[:password_digest]
+    assert_equal user_account.id, decoded_token_data[:user_id]
+    assert_equal user_account.document_number, decoded_token_data[:document_number]
+    assert_equal user_account.password_digest, decoded_token_data[:password_digest]
   end
 end
