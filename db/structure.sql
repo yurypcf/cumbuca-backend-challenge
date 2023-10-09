@@ -22,6 +22,28 @@ CREATE TYPE public.status AS ENUM (
 
 
 --
+-- Name: transaction_status; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.transaction_status AS ENUM (
+    'processing',
+    'success',
+    'failed',
+    'reverse_failed'
+);
+
+
+--
+-- Name: transaction_transaction_type; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.transaction_transaction_type AS ENUM (
+    'transfer',
+    'reversal'
+);
+
+
+--
 -- Name: transaction_type; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -76,8 +98,8 @@ CREATE TABLE public.transactions (
     receiver_id character varying NOT NULL,
     receiver_document_number character varying(11) NOT NULL,
     amount integer NOT NULL,
-    transaction_type public.transaction_type DEFAULT 'transfer'::public.transaction_type NOT NULL,
-    status public.status DEFAULT 'processing'::public.status NOT NULL,
+    transaction_type public.transaction_transaction_type DEFAULT 'transfer'::public.transaction_transaction_type NOT NULL,
+    status public.transaction_status DEFAULT 'processing'::public.transaction_status NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );

@@ -201,7 +201,7 @@ class TransactionControllerTest < ActionDispatch::IntegrationTest
 
     assert reversal.valid?
     assert reversal.reversal?
-    assert reversal.reversed? # TODO: REMOVE REVERSED FROM STATUS
+    assert reversal.success?
     
     # GET RECEIVER AND SENDER UPDATED USER ACCOUNT      
     receiver_balance = UserAccount.find(@receiver.id).balance

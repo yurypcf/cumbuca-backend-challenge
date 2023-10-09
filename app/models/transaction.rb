@@ -6,7 +6,7 @@ class Transaction < ApplicationRecord
     processing: 'processing',
     success: 'success',
     failed: 'failed',
-    reversed: 'reversed'
+    reverse_failed: 'reverse_failed'
   }
 
   validates :sender_id, presence: true

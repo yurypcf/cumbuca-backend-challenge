@@ -24,11 +24,11 @@ module Transactions
         if reverser_account.balance == reverser_new_balance && receiver_account.balance == receiver_new_balance
           receiver_account.save!
           reverser_account.save!
-          @transaction.reversed! # TODO: remove status reversed
+          @transaction.success!
           @transaction.reversal!
         else
+          @transaction.reversed_failed!
           raise ActiveRecord::Rollback
-          # TODO: @transaction.reversed_failed!
         end
       end
 
