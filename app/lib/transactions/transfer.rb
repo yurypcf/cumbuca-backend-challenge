@@ -4,11 +4,16 @@ module Transactions
       @transaction = transaction
     end
 
-    def perform
-      sender_account = UserAccount.find(@transaction.sender_id)
-      receiver_account = UserAccount.find(@transaction.receiver_id)
-
+    def perform      
       ActiveRecord::Base.transaction do
+        @transaction.lock!
+
+        sender_account = UserAccount.find(@transaction.sender_id)
+        sender_account.lock!
+
+        receiver_account = UserAccount.find(@transaction.receiver_id)
+        receiver_account.lock!
+
         sender_new_balance = sender_account.balance - @transaction.amount
         sender_account.update(balance: sender_new_balance)
         

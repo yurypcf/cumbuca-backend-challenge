@@ -5,11 +5,15 @@ module Transactions
     end
 
     def perform
-      amount_to_be_reversed = @transaction.amount
-      
       ActiveRecord::Base.transaction do
+        @transaction.lock!
+
+        amount_to_be_reversed = @transaction.amount
         receiver_account = UserAccount.find(@transaction.receiver_id)
+        receiver_account.lock!
+
         reverser_account = UserAccount.find(@transaction.sender_id)
+        reverser_account.lock!
 
         receiver_new_balance = receiver_account.balance - amount_to_be_reversed
         receiver_account.update(balance: receiver_new_balance)
@@ -24,6 +28,7 @@ module Transactions
           @transaction.reversal!
         else
           raise ActiveRecord::Rollback
+          # TODO: @transaction.reversed_failed!
         end
       end
 
