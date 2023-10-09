@@ -18,12 +18,12 @@ module Transactions
         if sender_account.balance == sender_new_balance && receiver_account.balance == receiver_new_balance
           sender_account.save!
           receiver_account.save!
+          @transaction.success!
         else
           @transaction.failed!
           raise ActiveRecord::Rollback
         end
 
-        @transaction.success!
       end
 
       @transaction
