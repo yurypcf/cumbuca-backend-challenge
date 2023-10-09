@@ -2,7 +2,7 @@ class TransactionController < ApplicationController
   before_action :authorize
 
   def create
-    transaction = validate_transaction_params(transaction)
+    transaction = validate_transfer_params(transaction)
     receiver_account = validate_receiver_account(transaction.receiver_document_number)
 
     transaction.receiver_id = receiver_account.id
@@ -15,9 +15,18 @@ class TransactionController < ApplicationController
     render json: { error: error.message }, status: error.http_status
   end
 
+  def reverse
+    transaction = validate_reversal_params
+    reversal = TransactionsHandler.new(transaction, :reverse).perform
+    render json: { reversed_transaction_id: reversal.id }, status: :ok
+  rescue StandardError => exception
+    error = ApiError.new(exception.message, :bad_request)
+    render json: { error: error.message }, status: error.http_status
+  end
+
   private
 
-  def validate_transaction_params(transaction)
+  def validate_transfer_params(transaction)
     # CHECK SENDER BALANCE
     if @user_account.balance < 1
       raise ApiError.new('Insufficient funds', :bad_request)
@@ -50,11 +59,30 @@ class TransactionController < ApplicationController
     receiver_account
   end
 
+  def validate_reversal_params
+    transaction = Transaction.find_by(id: reversal_transaction_params[:transaction_id])
+
+    # CHECK IF TRANSACTION IS IN DATABASE
+    raise ApiError.new("Couldnt find Transaction without an ID", :bad_request) if transaction.nil?
+
+    # CHECK IF REVERSAL AUTHOR IS THE SAME AUTHOR FROM ORIGINAL TRANSACTION
+    raise ApiError.new("Transaction user account id doesnt match", :bad_request) if transaction.sender_id != @user_account.id
+
+    # REVERT ONLY SUCCESFULL TRANSACTIONS
+    raise ApiError.new("Transaction cant be reversed", :bad_request) unless transaction.success? && transaction.transfer?
+
+    user_account_balance = UserAccount.find_by(id: transaction.receiver_id).balance
+
+    raise ApiError.new("Transaction cant be reversed", :bad_request) if user_account_balance - transaction.amount < 0
+
+    transaction
+  end
+
   def transfer_transaction_params
     params.require(:transaction).permit(:receiver_document_number, :amount)
   end
 
   def reversal_transaction_params
-    params.require(:transaction).permit(:receiver_document_number, :amount)
+    params.require(:transaction).permit(:transaction_id)
   end
 end

@@ -12,7 +12,8 @@ class TransactionsHandler
       transfer = Transactions::Transfer.new(@transaction).perform
       transfer
     when :reverse
-      # Transactions::Reverse.new(transaction)
+      reversal = Transactions::Reversal.new(@transaction).perform
+      reversal
     else
       raise ApiError.new("TransactionsHandler dont have this action")
     end
