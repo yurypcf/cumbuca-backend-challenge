@@ -13,4 +13,10 @@ class Transaction < ApplicationRecord
   validates :receiver_id, presence: true
   validates :receiver_document_number, presence: true, length: { minimum: 11, maximum: 11 }, numericality: { only_integer: true }
   validates :amount, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 1 }
+
+  scope :report, -> (start_date, end_date, account_user_id) {
+    where(created_at: start_date.beginning_of_day..end_date.end_of_day)
+    .where(sender_id: account_user_id)
+    .order(created_at: :desc)
+  }
 end
