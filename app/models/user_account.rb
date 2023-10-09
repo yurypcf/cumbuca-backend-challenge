@@ -1,6 +1,6 @@
 class UserAccount < ApplicationRecord
   has_secure_password
-  has_many :transactions
+  has_many :transactions, foreign_key: "sender_id"
 
   validates :name, presence: true, length: { maximum: 65 }
   validates :last_name, length: { maximum: 65 }
