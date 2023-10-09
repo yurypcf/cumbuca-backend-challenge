@@ -5,7 +5,7 @@ Rails.application.routes.draw do
   get  '/me',                  to: 'user_account#show'
 
   # Transaction related routes
-  #post '/reverse_transaction', to:
+  post '/reverse_transaction', to: 'transaction#reverse'
   post '/transaction',         to: 'transaction#create'
   #get  '/transactions',        to:
 end
