@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  # TODO: NAMESPACE Routes
   # UserAccount related routes
   post '/create_user_account', to: 'user_account#create'
   post '/sign_in',             to: 'user_account#sign_in'
@@ -7,5 +8,5 @@ Rails.application.routes.draw do
   # Transaction related routes
   post '/reverse_transaction', to: 'transaction#reverse'
   post '/transaction',         to: 'transaction#create'
-  #get  '/transactions',        to:
+  post '/transactions',        to: 'transaction#index'
 end
