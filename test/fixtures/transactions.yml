@@ -4,8 +4,26 @@
 # model remove the "{}" from the fixture names and add the columns immediately
 # below each fixture, per the syntax in the comments below
 #
-#one: {}
-# column: value
+transaction_to_be_succesfully_refunded:
+  sender_id: 4d327b8f-7323-432d-afa7-64366b877a85
+  receiver_id: 1e9a754c-bac5-4ee3-8f8b-035a76693bc8
+  receiver_document_number: 38426879586
+  amount: 240
+  transaction_type: transfer
+  status: success
 #
-#two: {}
-# column: value
+transaction_to_fail_refund:
+  sender_id: 4d327b8f-7323-432d-afa7-64366b877a85
+  receiver_id: 1e9a754c-bac5-4ee3-8f8b-035a76693bc8
+  receiver_document_number: 38426879586
+  amount: 240
+  transaction_type: transfer
+  status: failed
+
+transaction_to_fail_refund_2:
+  sender_id: 1e9a754c-bac5-4ee3-8f8b-035a76693bc8
+  receiver_id: 4d327b8f-7323-432d-afa7-64366b877a85
+  receiver_document_number: 71370823002
+  amount: 500
+  transaction_type: transfer
+  status: success

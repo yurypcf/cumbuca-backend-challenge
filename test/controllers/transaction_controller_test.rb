@@ -5,6 +5,10 @@ class TransactionControllerTest < ActionDispatch::IntegrationTest
     @sender = user_accounts(:ken_masters_account)
     @receiver = user_accounts(:ryu_hayabusa_account)
 
+    @transaction_to_be_succesfully_refunded = transactions(:transaction_to_be_succesfully_refunded)
+    @transaction_to_fail_refund = transactions(:transaction_to_fail_refund)
+    @transaction_to_fail_refund_2 = transactions(:transaction_to_fail_refund_2)
+
     post "/sign_in",
       params: {
         document_number: "71370823002",
@@ -114,5 +118,97 @@ class TransactionControllerTest < ActionDispatch::IntegrationTest
       assert_equal transfer.amount + @receiver.opening_balance, receiver_balance
       assert_equal @sender.opening_balance - transfer.amount, sender_balance
     end
+  end
+
+  test "should not find a transaction to revert" do
+    post "/reverse_transaction",
+      headers: {
+        Authorization: "Bearer #{@token}"
+      },
+      params: {
+        transaction: {
+          transaction_id: 111111
+        }
+      }
+    assert_equal "{\"error\":\"Couldnt find Transaction without an ID\"}", @response.body
+    assert_response :bad_request
+  end
+
+  test "should not revert a transaction with divergent account user author" do
+    post "/reverse_transaction",
+      headers: {
+        Authorization: "Bearer #{@token}"
+      },
+      params: {
+        transaction: {
+          transaction_id: @transaction_to_fail_refund_2.id
+        }
+      }
+    assert_equal "{\"error\":\"Transaction user account id doesnt match\"}", @response.body
+    assert_response :bad_request
+  end
+
+  test "should not revert a transaction that isnt succesfull" do
+    post "/reverse_transaction",
+      headers: {
+        Authorization: "Bearer #{@token}"
+      },
+      params: {
+        transaction: {
+          transaction_id: @transaction_to_fail_refund.id
+        }
+      }
+    assert_equal "{\"error\":\"Transaction cant be reversed\"}", @response.body
+    assert_response :bad_request
+  end
+
+  test "should not revert if receiver balance would be negative" do
+    # Transaction to be reverted amount is 240 cents
+    @receiver.update(balance: 120)
+
+    post "/reverse_transaction",
+      headers: {
+        Authorization: "Bearer #{@token}"
+      },
+      params: {
+        transaction: {
+          transaction_id: @transaction_to_be_succesfully_refunded.id
+        }
+      }
+    assert_equal "{\"error\":\"Transaction cant be reversed\"}", @response.body
+    assert_response :bad_request
+  end
+
+  test "should revert a transaction succesfully" do
+    # Transaction to be reverted amount is 240 cents
+
+    reverter_balance = @sender.balance
+    receiver_balance = @receiver.balance
+
+    post "/reverse_transaction",
+      headers: {
+        Authorization: "Bearer #{@token}"
+      },
+      params: {
+        transaction: {
+          transaction_id: @transaction_to_be_succesfully_refunded.id
+        }
+      }
+    reversal_id = JSON.parse(@response.body)['reversed_transaction_id']
+
+    # ASSERT TRANSACTION EFFECTS
+    reversal = Transaction.find_by(id: reversal_id)
+
+    assert reversal.valid?
+    assert reversal.reversal?
+    assert reversal.reversed? # TODO: REMOVE REVERSED FROM STATUS
+    
+    # GET RECEIVER AND SENDER UPDATED USER ACCOUNT      
+    receiver_balance = UserAccount.find(@receiver.id).balance
+    sender_balance = UserAccount.find(@sender.id).balance
+
+    # ASSERT NEW FINANCIAL BALANCE VALUES
+    assert_equal @receiver.opening_balance - reversal.amount, receiver_balance
+    assert_equal @sender.opening_balance + reversal.amount, sender_balance
   end
 end
