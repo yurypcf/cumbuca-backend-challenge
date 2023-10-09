@@ -97,7 +97,7 @@ class TransactionControllerTest < ActionDispatch::IntegrationTest
             amount: 200
           }
         }
-      transfer_id = JSON.parse(@response.body)['transaction']['id']
+      transfer_id = JSON.parse(@response.body)['transaction_id']
 
       # ASSERT TRANSACTION EFFECTS
       transfer = Transaction.find_by(id: transfer_id)

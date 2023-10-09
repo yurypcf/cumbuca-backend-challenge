@@ -1,9 +1,9 @@
 class TransactionsHandler
   include Transactions
 
-  def initialize(transaction)
+  def initialize(transaction, action)
     @transaction = transaction
-    @action = transaction.transaction_type.to_sym
+    @action = action
   end
 
   def perform
