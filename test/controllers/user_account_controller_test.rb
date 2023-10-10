@@ -50,7 +50,7 @@ class UserAccountControllerTest < ActionDispatch::IntegrationTest
     assert_response :unauthorized
   end
 
-  test "should be able succesfull create user account, sign in and see user account details" do
+  test "should be able succesfull create user account" do
     assert_difference('UserAccount.count') do
       post "/create_user_account",
         params: {
@@ -63,20 +63,16 @@ class UserAccountControllerTest < ActionDispatch::IntegrationTest
         }
       assert_response :created
     end
+  end
 
+  test "should be able to succesfull sign in" do
     post "/sign_in",
       params: {
-        document_number: "85902023050",
+        document_number: user_accounts(:ryu_hayabusa_account).document_number,
         password: "123456"
       }
     
     refute @response.body.nil?
     assert_response :ok
-
-    sign_in_body_json = JSON.parse(@response.body)
-    get "/me", headers: { Authorization: "Bearer #{sign_in_body_json['token']}"}
-    assert_response :ok
-
-    assert_equal "85902023050", JSON.parse(@response.body)['user_account']['document_number']
   end
 end

@@ -13,9 +13,9 @@ class UserAccountController < ApplicationController
   end
 
   def sign_in
-    user_account = UserAccount.find_by(document_number: params[:document_number])
+    user_account = UserAccount.find_by!(document_number: params[:document_number])
     
-    if user_account&.authenticate(params[:password])
+    if user_account.authenticate(params[:password])
       token = JwtWrapper.encode(
         user_id: user_account.id,
         document_number: user_account.document_number
@@ -24,6 +24,8 @@ class UserAccountController < ApplicationController
       expire_time = JwtWrapper.decode(token)[:exp]
 
       render json: { token: token, expire_time: Time.at(expire_time) }, status: :ok
+    else
+      raise ApiError.new("Invalid credentials", :unauthorized)
     end
   rescue StandardError => exception
     error = ApiError.new(exception.message, :unauthorized)
