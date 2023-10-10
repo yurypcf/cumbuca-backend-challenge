@@ -1,18 +1,15 @@
 class UserAccountController < ApplicationController
   before_action :authorize, only: [:show]
 
-  # TODO: show invalid fields
   def create
     @user_account = UserAccount.new(user_account_params)
+    @user_account.balance = @user_account.opening_balance
+    @user_account.save!
 
-    if @user_account.valid?
-      @user_account.balance = @user_account.opening_balance
-      @user_account.save
-
-      head :created
-    else
-      render json: { error: "Invalid user account data" }, status: :unprocessable_entity
-    end
+    head :created
+  rescue StandardError => exception
+    error = ApiError.new(exception.message, :unprocessable_entity)
+    render json: { error: error.message }, status: error.http_status
   end
 
   def sign_in
@@ -27,9 +24,10 @@ class UserAccountController < ApplicationController
       expire_time = JwtWrapper.decode(token)[:exp]
 
       render json: { token: token, expire_time: Time.at(expire_time) }, status: :ok
-    else
-      render json: { error: "Invalid user or password" }, status: :unauthorized
     end
+  rescue StandardError => exception
+    error = ApiError.new(exception.message, :unauthorized)
+    render json: { error: error.message }, status: error.http_status
   end
 
   def show
