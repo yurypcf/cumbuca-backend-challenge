@@ -3,7 +3,7 @@ require "test_helper"
 class UserAccountFlowTest < ActionDispatch::IntegrationTest
   test "create user account and sign in" do
     assert_difference('UserAccount.count') do
-      post "/create_user_account",
+      post "/user_accounts",
         params: {
           user_account: {
             name: "Kaneda",
@@ -14,7 +14,7 @@ class UserAccountFlowTest < ActionDispatch::IntegrationTest
         }
       assert_response :created
 
-      post "/sign_in",
+      post "/user_accounts/sign_in",
       params: {
         document_number: "85902023050",
         password: "123456"
@@ -24,7 +24,7 @@ class UserAccountFlowTest < ActionDispatch::IntegrationTest
       assert_response :ok
 
       sign_in_body_json = JSON.parse(@response.body)
-      get "/me", headers: { Authorization: "Bearer #{sign_in_body_json['token']}"}
+      get "/user_accounts/me", headers: { Authorization: "Bearer #{sign_in_body_json['token']}"}
       assert_response :ok
 
       assert_equal "85902023050", JSON.parse(@response.body)['user_account']['document_number']

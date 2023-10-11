@@ -9,7 +9,7 @@ class TransactionControllerTest < ActionDispatch::IntegrationTest
     @transaction_to_fail_refund = transactions(:transaction_to_fail_refund)
     @transaction_to_fail_refund_2 = transactions(:transaction_to_fail_refund_2)
 
-    post "/sign_in",
+    post "/user_accounts/sign_in",
       params: {
         document_number: "71370823002",
         password: "123456"
@@ -22,7 +22,7 @@ class TransactionControllerTest < ActionDispatch::IntegrationTest
     @sender.update(balance: 0)
 
     assert_no_difference('Transaction.count') do
-      post "/transaction",
+      post "/transactions/create",
         headers: {
           Authorization: "Bearer #{@token}"
         },
@@ -39,7 +39,7 @@ class TransactionControllerTest < ActionDispatch::IntegrationTest
 
   test "should validate sender provided amount or greater than 0 amount" do
     assert_no_difference('Transaction.count') do
-      post "/transaction",
+      post "/transactions/create",
         headers: {
           Authorization: "Bearer #{@token}"
         },
@@ -57,7 +57,7 @@ class TransactionControllerTest < ActionDispatch::IntegrationTest
     @sender.update(balance: 100)
 
     assert_no_difference('Transaction.count') do
-      post "/transaction",
+      post "/transactions/create",
         headers: {
           Authorization: "Bearer #{@token}"
         },
@@ -74,7 +74,7 @@ class TransactionControllerTest < ActionDispatch::IntegrationTest
 
   test "should validate isnt a self transfer" do
     assert_no_difference('Transaction.count') do
-      post "/transaction",
+      post "/transactions/create",
         headers: {
           Authorization: "Bearer #{@token}"
         },
@@ -91,7 +91,7 @@ class TransactionControllerTest < ActionDispatch::IntegrationTest
 
   test "should be able to create a succesfull transfer" do
     assert_difference('Transaction.count') do
-      post "/transaction",
+      post "/transactions/create",
         headers: {
           Authorization: "Bearer #{@token}"
         },
@@ -121,7 +121,7 @@ class TransactionControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should not find a transaction to revert" do
-    post "/reverse_transaction",
+    post "/transactions/reverse",
       headers: {
         Authorization: "Bearer #{@token}"
       },
@@ -135,7 +135,7 @@ class TransactionControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should not revert a transaction with divergent account user author" do
-    post "/reverse_transaction",
+    post "/transactions/reverse",
       headers: {
         Authorization: "Bearer #{@token}"
       },
@@ -149,7 +149,7 @@ class TransactionControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should not revert a transaction that isnt succesfull" do
-    post "/reverse_transaction",
+    post "/transactions/reverse",
       headers: {
         Authorization: "Bearer #{@token}"
       },
@@ -166,7 +166,7 @@ class TransactionControllerTest < ActionDispatch::IntegrationTest
     # Transaction to be reverted amount is 240 cents
     @receiver.update(balance: 120)
 
-    post "/reverse_transaction",
+    post "/transactions/reverse",
       headers: {
         Authorization: "Bearer #{@token}"
       },
@@ -185,7 +185,7 @@ class TransactionControllerTest < ActionDispatch::IntegrationTest
     reverter_balance = @sender.balance
     receiver_balance = @receiver.balance
 
-    post "/reverse_transaction",
+    post "/transactions/reverse",
       headers: {
         Authorization: "Bearer #{@token}"
       },

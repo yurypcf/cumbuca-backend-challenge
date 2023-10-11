@@ -17,7 +17,7 @@ user_account_params = {
 }
 
 create_account_res = HTTParty.post(
-  "#{base_uri}/create_user_account",
+  "#{base_uri}/user_accounts",
   body: user_account_params
 )
 
@@ -27,7 +27,7 @@ sign_in_params = {
 }
 
 sign_in_res = HTTParty.post(
-  "#{base_uri}/sign_in",
+  "#{base_uri}/user_accounts/sign_in",
   body: sign_in_params
 )
 
@@ -42,7 +42,7 @@ transaction_ids = []
 10.times {
   threads << Thread.new do
     transaction_res = HTTParty.post(
-      "#{base_uri}/transaction",
+      "#{base_uri}/transactions/create",
       headers: headers,
       body: params
     )
@@ -56,7 +56,7 @@ threads.each(&:join)
 
 transaction_ids.each do |t_id|
   reversal_res = HTTParty.post(
-    "#{base_uri}/reverse_transaction",
+    "#{base_uri}/transactions/reverse",
     headers: headers,
     body: { transaction: { transaction_id: t_id } }
   )

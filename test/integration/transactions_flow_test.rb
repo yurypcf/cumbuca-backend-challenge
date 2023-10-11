@@ -2,7 +2,7 @@ require "test_helper"
 
 class TransactionsFlowTest < ActionDispatch::IntegrationTest
   test "create transactions, refund and get report" do
-    post "/sign_in",
+    post "/user_accounts/sign_in",
     params: {
       document_number: user_accounts(:ryu_hayabusa_account).document_number,
       password: "123456"
@@ -13,7 +13,7 @@ class TransactionsFlowTest < ActionDispatch::IntegrationTest
 
     token = JSON.parse(@response.body)['token']
 
-    post "/transaction",
+    post "/transactions/create",
       headers: {
         Authorization: "Bearer #{token}"
       },
@@ -34,7 +34,7 @@ class TransactionsFlowTest < ActionDispatch::IntegrationTest
     assert transfer.success?
 
 
-    post "/reverse_transaction",
+    post "/transactions/reverse",
     headers: {
       Authorization: "Bearer #{token}"
     },

@@ -3,7 +3,7 @@ require "test_helper"
 class UserAccountControllerTest < ActionDispatch::IntegrationTest
   test "should not create user account with invalid post parameters" do
     assert_no_difference('UserAccount.count') do
-      post "/create_user_account",
+      post "/user_accounts",
         params: {
           user_account: {
             name: "Kaneda",
@@ -14,7 +14,7 @@ class UserAccountControllerTest < ActionDispatch::IntegrationTest
         }
       assert_response :unprocessable_entity
 
-      post "/create_user_account",
+      post "/user_accounts",
         params: {
           user_account: {
             # mandatory field name not provided
@@ -29,7 +29,7 @@ class UserAccountControllerTest < ActionDispatch::IntegrationTest
 
   test "should create a valid user account and fail to sign_in providing incorret credentials" do
     assert_difference('UserAccount.count') do
-      post "/create_user_account",
+      post "/user_accounts",
         params: {
           user_account: {
             name: "Kaneda",
@@ -42,7 +42,7 @@ class UserAccountControllerTest < ActionDispatch::IntegrationTest
     end
 
     # failing sign_in
-    post "/sign_in",
+    post "/user_accounts/sign_in",
       params: {
         document_number: "85902223050", # wrong document_number
         password: "123456"
@@ -52,7 +52,7 @@ class UserAccountControllerTest < ActionDispatch::IntegrationTest
 
   test "should be able succesfull create user account" do
     assert_difference('UserAccount.count') do
-      post "/create_user_account",
+      post "/user_accounts",
         params: {
           user_account: {
             name: "Kaneda",
@@ -66,7 +66,7 @@ class UserAccountControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should be able to succesfull sign in" do
-    post "/sign_in",
+    post "/user_accounts/sign_in",
       params: {
         document_number: user_accounts(:ryu_hayabusa_account).document_number,
         password: "123456"

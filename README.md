@@ -36,7 +36,7 @@ If the project is running ok, you can run the project **unit tests** and **integ
 ### Creating a User Account
 
 ```console
-curl -H "Content-Type: application/json" -d '{"user_account": {"name": "Alucard", "last_name": "Tepes", "document_number": "45564121376", "opening_balance": 25000, "password": "123456"}}' localhost:3000/create_user_account
+curl -H "Content-Type: application/json" -d '{"user_account": {"name": "Alucard", "last_name": "Tepes", "document_number": "45564121376", "opening_balance": 25000, "password": "123456"}}' localhost:3000/user_accounts
 ```
 
 Response should be 201, CREATED
@@ -48,7 +48,7 @@ Response should be 201, CREATED
 Two params must be provided to sign in: registered document number and password.
 
 ```console
-curl -H "Content-Type: application/json" -d '{"document_number":"45564121376", "password": "123456"}' localhost:3000/sign_in
+curl -H "Content-Type: application/json" -d '{"document_number":"45564121376", "password": "123456"}' localhost:3000/user_accounts/sign_in
 ```
 
 Response should be 200 with User Account token body along with the expiry time of the token (set to 20 minutes).
@@ -58,7 +58,7 @@ Response should be 200 with User Account token body along with the expiry time o
 ### Retrieving your User Account data
 
 ```console
-curl -H "Authorization: Bearer TOKENHERE" localhost:3000/me 
+curl -H "Authorization: Bearer TOKENHERE" localhost:3000/user_accounts/me
 ```
 
 Response should be 200 with the created User Account data.
@@ -68,7 +68,7 @@ Response should be 200 with the created User Account data.
 First, we need another account to transfer to. Create another one using the first functionality
 
 ```console
-curl -H "Content-Type: application/json" -d '{"user_account": {"name": "Dracula", "last_name": "Tepes", "document_number": "84566082032", "opening_balance": 125000, "password": "123456"}}' localhost:3000/create_user_account
+curl -H "Content-Type: application/json" -d '{"user_account": {"name": "Dracula", "last_name": "Tepes", "document_number": "84566082032", "opening_balance": 125000, "password": "123456"}}' localhost:3000/user_accounts
 ```
 
 Now, lets test the transaction route to be able to transfer from Alucard to Dracula.
@@ -78,7 +78,7 @@ Alucard needs to send a POST request with parameters `receiver_document_number` 
 The second parameter is `amount`. The amount he wishes to transfer, in this case 2000 (20 reais, probably a blood vial he owes his father).
 
 ```console
-curl -H "Authorization: Bearer TOKENHERE" -H "Content-Type: application/json" -d '{"receiver_document_number": "84566082032", "amount": 2000}' localhost:3000/transaction -v
+curl -H "Authorization: Bearer TOKENHERE" -H "Content-Type: application/json" -d '{"receiver_document_number": "84566082032", "amount": 2000}' localhost:3000/transactions/create -v
 ```
 
 Response should be the `transaction_id` registered in database.
@@ -102,10 +102,10 @@ Response should be transacations array, containing the transaction he just made 
 
 Well, Dracula didn't meant to charge his son for blood vials, so now Alucard wants his money back.
 
-Alucard can reverse his transaction using the `transaction_id` and his `token` on `/reverse_transaction` POST route:
+Alucard can reverse his transaction using the `transaction_id` and his `token` on `/transactions/reverse` POST route:
 
 ```console
-curl -H "Authorization: Bearer TOKENHERE" -H "Content-Type: application/json" -d '{"transaction": { "transaction_id": "bd1cfa6f-8e85-4471-9169-17a4900ac226" } }' localhost:3000/reverse_transaction
+curl -H "Authorization: Bearer TOKENHERE" -H "Content-Type: application/json" -d '{"transaction": { "transaction_id": "bd1cfa6f-8e85-4471-9169-17a4900ac226" } }' localhost:3000/transactions/reverse
 ```
 
 Response should be a `reversed_transaction_id`
