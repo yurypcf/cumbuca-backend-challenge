@@ -16,15 +16,14 @@ class TransactionController < ApplicationController
   end
 
   def create
-    Rails.logger.info "[TRANSACTION][VALIDATION] Started POST /transaction"
-    Rails.logger.info "[TRANSACTION][VALIDATION] Validating transaction params"
-    transaction = validate_transfer_params(transaction)
-
     Rails.logger.info "[TRANSACTION][VALIDATION] Validating receiver account"
-    receiver_account = validate_receiver_account(transaction.receiver_document_number)
+    receiver_account = TransactionsHandler.validate_receiver_account(
+      transfer_transaction_params[:receiver_document_number],
+      @user_account.id
+    )
 
-    transaction.receiver_id = receiver_account.id
-    transaction.sender_id = @user_account.id
+    Rails.logger.info "[TRANSACTION][VALIDATION] Validating transaction params"
+    transaction = TransactionsHandler.validate_transfer(@user_account, transfer_transaction_params)
 
     transfer = TransactionsHandler.new(transaction, :transfer).perform
     Rails.logger.info "[TRANSACTION][SUCCESS] Transfer ID: #{transfer.id}"
@@ -35,9 +34,12 @@ class TransactionController < ApplicationController
   end
 
   def reverse
-    Rails.logger.info "[TRANSACTION][VALIDATION] Started POST /reverse_transaction"
     Rails.logger.info "[TRANSACTION][VALIDATION] Validating reverse transaction params"
-    transaction = validate_reversal_params
+    transaction = TransactionsHandler.validate_reversal(
+      reversal_transaction_params[:transaction_id],
+      @user_account.id
+    )
+
     reversal = TransactionsHandler.new(transaction, :reverse).perform
     Rails.logger.info "[TRANSACTION][SUCCESS] Reversal ID: #{reversal.id}"
     render json: { reversed_transaction_id: reversal.id }, status: :ok
@@ -47,59 +49,6 @@ class TransactionController < ApplicationController
   end
 
   private
-
-  # TODO: ALL VALIDATION METHODS SHOULD BE MOVED
-  def validate_transfer_params(transaction)
-    # CHECK SENDER BALANCE
-    if @user_account.balance < 1
-      raise ApiError.new('Insufficient funds', :bad_request)
-    end
-
-    transaction = Transaction.new(transfer_transaction_params)
-
-    # CHECK IF TRANSACTION AMOUNT IS GREATER THAN 1 CENT
-    if transaction.amount.nil? || transaction.amount < 1
-      raise ApiError.new('Invalid amount or amount not supplied', :bad_request)
-    end
-
-    # CHECK IF THE TRANSFER IS MATHEMATICALLY POSSIBLE
-    if transaction.amount > @user_account.balance
-      raise ApiError.new('Amount supplied greater than SENDER UserAccount funds', :bad_request)
-    end
-
-    transaction
-  end
-
-  def validate_receiver_account(document_number)
-    receiver_account = UserAccount.find_by(document_number: document_number)
-
-    # CHECK IF RECEIVER ACCOUNT EXISTS
-    raise ApiError.new('Receiver Account not found', :bad_request) if receiver_account.nil?
-
-    # CHECK IF ISNT SELF TRANSFER
-    raise ApiError.new('You can not transfer to yourself', :bad_request) if receiver_account.id == @user_account.id
-
-    receiver_account
-  end
-
-  def validate_reversal_params
-    transaction = Transaction.find_by(id: reversal_transaction_params[:transaction_id])
-
-    # CHECK IF TRANSACTION IS IN DATABASE
-    raise ApiError.new("Couldnt find Transaction without an ID", :bad_request) if transaction.nil?
-
-    # CHECK IF REVERSAL AUTHOR IS THE SAME AUTHOR FROM ORIGINAL TRANSACTION
-    raise ApiError.new("Transaction user account id doesnt match", :bad_request) if transaction.sender_id != @user_account.id
-
-    # REVERT ONLY SUCCESFULL TRANSACTIONS
-    raise ApiError.new("Transaction cant be reversed", :bad_request) unless transaction.success? && transaction.transfer?
-
-    user_account_balance = UserAccount.find_by(id: transaction.receiver_id).balance
-
-    raise ApiError.new("Transaction cant be reversed", :bad_request) if user_account_balance - transaction.amount < 0
-
-    transaction
-  end
 
   def validate_date_input
     raise ApiError.new('No date filter provided', :bad_request) if index_params[:start_date].nil? || index_params[:end_date].nil?
