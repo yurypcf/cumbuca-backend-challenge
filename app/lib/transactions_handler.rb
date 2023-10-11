@@ -17,8 +17,7 @@ class TransactionsHandler
       reversal = Transactions::Reversal.new(@transaction).perform
       reversal
     else
-      # TODO: Update this else
-      raise ApiError.new("TransactionsHandler dont have this action")
+      raise ApiError.new("TransactionsHandler dont have this action", :bad_request)
     end
   end
 
