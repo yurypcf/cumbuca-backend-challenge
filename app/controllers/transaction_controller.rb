@@ -2,10 +2,13 @@ class TransactionController < ApplicationController
   before_action :authorize
 
   def index
+    Rails.logger.info "[TRANSACTION][VALIDATION] Started POST /transactions"
     start_date, end_date = validate_date_input
 
+    Rails.logger.info "[TRANSACTION][PROCESSING] Gathering transactions..."
     transactions = Transaction.report(start_date, end_date, @user_account.id)
 
+    Rails.logger.info "[TRANSACTION][SUCCESS] Report OK"
     render json: { transactions: transactions, start_date: start_date, end_date: end_date }, status: :ok
   rescue StandardError => exception
     error = ApiError.new(exception.message, :bad_request)
@@ -13,13 +16,18 @@ class TransactionController < ApplicationController
   end
 
   def create
+    Rails.logger.info "[TRANSACTION][VALIDATION] Started POST /transaction"
+    Rails.logger.info "[TRANSACTION][VALIDATION] Validating transaction params"
     transaction = validate_transfer_params(transaction)
+
+    Rails.logger.info "[TRANSACTION][VALIDATION] Validating receiver account"
     receiver_account = validate_receiver_account(transaction.receiver_document_number)
 
     transaction.receiver_id = receiver_account.id
     transaction.sender_id = @user_account.id
 
     transfer = TransactionsHandler.new(transaction, :transfer).perform
+    Rails.logger.info "[TRANSACTION][SUCCESS] Transfer ID: #{transfer.id}"
     render json: { transaction_id: transfer.id }, status: :ok
   rescue StandardError => exception
     error = ApiError.new(exception.message, :bad_request)
@@ -27,8 +35,11 @@ class TransactionController < ApplicationController
   end
 
   def reverse
+    Rails.logger.info "[TRANSACTION][VALIDATION] Started POST /reverse_transaction"
+    Rails.logger.info "[TRANSACTION][VALIDATION] Validating reverse transaction params"
     transaction = validate_reversal_params
     reversal = TransactionsHandler.new(transaction, :reverse).perform
+    Rails.logger.info "[TRANSACTION][SUCCESS] Reversal ID: #{reversal.id}"
     render json: { reversed_transaction_id: reversal.id }, status: :ok
   rescue StandardError => exception
     error = ApiError.new(exception.message, :bad_request)
@@ -98,7 +109,7 @@ class TransactionController < ApplicationController
 
     raise ApiError.new('Date input must be formated yyyy-mm-dd or yyyy-m-d', :bad_request) unless match_date_format?(start_date) && match_date_format?(end_date)
 
-    [DateTime.parse(start_date), DateTime.parse(end_date)]
+    [Time.zone.parse(start_date), Time.zone.parse(end_date)]
   end
 
   def match_date_format?(str)
