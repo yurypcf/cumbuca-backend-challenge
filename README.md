@@ -10,6 +10,17 @@ Those persisted User Account must be able to:
 - Reverse a succesfull transfer
 - Collect Transactions data filtered by start and end date
 
+## Summary
+
+- [Setup](#setup)
+- [Functionalities](#functionalities)
+  - [Creating a User Account](#creating-a-user-account)
+  - [Signin in](#signin-in)
+  - [Retrieving your User Account data](#retrieving-your-user-account-data)
+  - [Transfering to another account](#transfering-to-another-account)
+  - [Checking transactions](#checking-transactions)
+  - [Reversing a transaction](#reversing-a-transaction)
+
 ## Setup
 
 This project is using `Docker` and `docker compose` to ease the setup steps.
