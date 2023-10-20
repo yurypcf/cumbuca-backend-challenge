@@ -6,6 +6,7 @@ class CreateUserAccounts < ActiveRecord::Migration[7.0]
       t.string :document_number, null: false, limit: 11
       t.string :password_digest, null: false
       t.integer :balance, null: false
+      t.check_constraint "balance_check", "balance > 100"
       t.integer :opening_balance, :default => 0
       t.timestamps
     end
