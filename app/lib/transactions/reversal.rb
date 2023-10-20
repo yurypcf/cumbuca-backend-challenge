@@ -5,15 +5,11 @@ module Transactions
     end
 
     def perform
-      ActiveRecord::Base.transaction do
-        @transaction.lock!
-
+      ActiveRecord::Base.transaction(isolation: :serializable) do
         amount_to_be_reversed = @transaction.amount
         receiver_account = UserAccount.find(@transaction.receiver_id)
-        receiver_account.lock!
 
         reverser_account = UserAccount.find(@transaction.sender_id)
-        reverser_account.lock!
 
         receiver_new_balance = receiver_account.balance - amount_to_be_reversed
         receiver_account.update(balance: receiver_new_balance)
